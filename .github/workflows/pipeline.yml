@@ -140,6 +140,26 @@ jobs:
           test -s processed_data/train.csv
           test -s processed_data/test.csv
 
+      - name: Debug repository structure
+        run: |
+          echo "Current working directory:"
+          pwd
+
+          echo "Root directory contents:"
+          ls -la
+
+          echo "Source directory contents:"
+          ls -la src/
+
+          echo "All Python files:"
+          find . -type f -name "*.py"
+
+          echo "Current Git commit:"
+          git log -1 --oneline
+
+          echo "Files in checked-out commit:"
+          git ls-tree -r --name-only HEAD
+
       - name: Train and evaluate models
         run: python src/model_building.py
 
