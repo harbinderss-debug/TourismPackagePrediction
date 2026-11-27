@@ -1,0 +1,102 @@
+name: Visit With Us MLOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data/**'
+      - 'src/**'
+      - 'requirements.txt'
+      - '.github/workflows/pipeline.yml'
+
+  workflow_dispatch:
+
+jobs:
+
+  # ==========================================
+  # Job 1: Data Registration
+  # ==========================================
+
+  data_registration:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate registered dataset
+        run: python src/data_registration.py
+
+
+  # ==========================================
+  # Job 2: Data Preparation
+  # ==========================================
+
+  data_preparation:
+
+    needs: data_registration
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Execute data preparation
+        run: python src/data_preparation.py
+
+      - name: Upload prepared datasets
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-datasets
+          path: |
+            processed_data/train.csv
+            processed_data/test.csv
+          if-no-files-found: error
+          retention-days: 7
+
+
+  # ==========================================
+  # Job 3: Verify Prepared Datasets
+  # ==========================================
+
+  verify_artifact:
+
+    needs: data_preparation
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Download prepared datasets
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-datasets
+          path: processed_data/
+
+      - name: Verify downloaded files
+        run: |
+          ls -lh processed_data/
+          test -s processed_data/train.csv
+          test -s processed_data/test.csv
+          echo "Both datasets downloaded successfully."
