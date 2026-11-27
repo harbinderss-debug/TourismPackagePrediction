@@ -1,3 +1,4 @@
+
 name: Visit With Us MLOps Pipeline
 
 on:
@@ -95,7 +96,13 @@ jobs:
           path: processed_data/
 
       - name: Verify downloaded files
-   
+        run: |
+          ls -lh processed_data/
+          test -s processed_data/train.csv
+          test -s processed_data/test.csv
+          echo "Both datasets downloaded successfully."
+
+
   # ==========================================
   # Job 4: Model Building and Experiment Tracking
   # ==========================================
@@ -151,8 +158,3 @@ jobs:
           path: mlruns/
           if-no-files-found: error
           retention-days: 7
-        run: |
-          ls -lh processed_data/
-          test -s processed_data/train.csv
-          test -s processed_data/test.csv
-          echo "Both datasets downloaded successfully."
